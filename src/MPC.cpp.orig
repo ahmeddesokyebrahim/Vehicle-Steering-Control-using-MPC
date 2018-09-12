@@ -22,7 +22,7 @@ double dt = 0.1;
 const double Lf = 2.67;
 
 
-double ref_v = 50;
+double ref_v = 35;
 
 // The solver takes all the state variables and actuator
 // variables in a singular vector. Thus, we should to establish
@@ -67,15 +67,14 @@ class FG_eval {
 
 	  for(int t = 0 ; t < N-1 ; t++)
 	  {
-	  	fg[0] += 200 * CppAD::pow(vars[delta_start + t] , 2);
+	  	fg[0] += 5 * CppAD::pow(vars[delta_start + t] , 2);
 	  	fg[0] += 5 * CppAD::pow(vars[a_start + t] , 2);
 	  }
 
 	  for( int t = 0 ; t < N-2 ; t++)
 	  {
-	  	fg[0] += 1000 * CppAD::pow(vars[delta_start + t + 1] - vars[delta_start + t] , 2);
+	  	fg[0] += 100 * CppAD::pow(vars[delta_start + t + 1] - vars[delta_start + t] , 2);
 	  	fg[0] += 10 * CppAD::pow(vars[a_start + t + 1] - vars[a_start + t] , 2);
-
 	  }
 
 	  //
@@ -116,11 +115,6 @@ class FG_eval {
 
 	      AD<double> delta0 = vars[delta_start + t - 1];
 	      AD<double> a0 = vars[a_start + t - 1];
-
-//	      if (t > 1) {   // use previous actuations (to account for latency)
-//	        a0 = vars[a_start + t - 2];
-//	        delta0 = vars[delta_start + t - 2];
-//	      }
 
 	      AD<double> f0 = coeffs[0] + coeffs[1] * x0 + + coeffs[2] * CppAD::pow(x0,2) + coeffs[3] * CppAD::pow(x0,3);;
 	      //AD<double> psides0 = CppAD::atan(coeffs[1]);
@@ -294,5 +288,5 @@ vector<double> MPC::Solve(Eigen::VectorXd state, Eigen::VectorXd coeffs) {
   return {solution.x[x_start + 1],   solution.x[y_start + 1],
           solution.x[psi_start + 1], solution.x[v_start + 1],
           solution.x[cte_start + 1], solution.x[epsi_start + 1],
-          solution.x[delta_start] + solution.x[delta_start+1],   solution.x[a_start] +  solution.x[a_start+1]};
+          solution.x[delta_start],   solution.x[a_start]};
 }

@@ -44,7 +44,7 @@ In order to develop and optimal controller, we need to define a cost function th
 
 ![cost](https://i.imgur.com/NKaW8xt.png)
 
-## Prediction Horizon and Letency
+### Prediction Horizon
 ---
 The prediction horizon is the duration over which future prediction are made. This duration is defined by the product of  two parameters
 - The number of time steps in the horizon `N`
@@ -57,7 +57,28 @@ So, I have chosen `dt = 0.1` and `N = 10` which results to a prediction horizon 
 For targetting a real-life controller, in which the actuations do not apply immediately (not like simulation). So, a latency factor of 100 ms is applied. The purpose is to mimic real driving conditions where the car does actuate the commands instantly.
 Dealing with latency is done by a thread that run every 100 ms. 
 
-## Polynomial Fitting
+### Handling Latency
+---
+For targetting a real-life controller, in which the actuations do not apply immediately (not like simulation). So, a latency factor of 100 ms is applied. The purpose is to mimic real driving conditions where the car does actuate the commands instantly.
+Dealing with latency is done by a thread that run every 100 ms. 
+```cpp
+          // Latency
+          // The purpose is to mimic real driving conditions where
+          // the car does actuate the commands instantly.
+          this_thread::sleep_for(chrono::milliseconds(100));
+```
+Also, for taking this into account within the MPC, the actuations returned are the current actuations and the next ones after dt, so this make the trajectroy more efficient and stable and tackled the latency problem
+```cpp
+...
+...
+  return {solution.x[x_start + 1],   solution.x[y_start + 1],
+          solution.x[psi_start + 1], solution.x[v_start + 1],
+          solution.x[cte_start + 1], solution.x[epsi_start + 1],
+          solution.x[delta_start] + solution.x[delta_start+1],   solution.x[a_start] +  solution.x[a_start+1]};
+```
+
+
+### Polynomial Fitting
 ---
 We have mentioned in the model definition section that `cte` can be defined as the difference between the trajectory line and the current vehicle `y` position. Actually here we will not assume the reference trajectory as a line:
 > **we use a third degree polynomial where most roads fit with it**.
@@ -97,5 +118,4 @@ Once the install for uWebSocketIO is complete, the main program can be built and
   * MPC takes into consideration the state and the control input for the vehicle.
   * MPC model the vehcile dynamics and predicts in future how the vehicle will be.
   * MPC overcomes PID as MPC can apadt quite well because of the model, and taking the latency into consideration.
-  * [Here](https://youtu.be/ojT-lh0apDg) you can find a demo video for the MPC project.
 
